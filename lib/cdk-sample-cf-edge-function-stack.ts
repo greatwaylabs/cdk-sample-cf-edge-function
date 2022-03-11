@@ -13,21 +13,24 @@ export class CdkSampleCfEdgeFunctionStack extends cdk.Stack {
 
     // The code that defines your stack goes here
 
-    // Add a cloudfront Function to a Distribution
-    const cfFunction = new cloudfront.Function(this, 'Function', {
-      code: cloudfront.FunctionCode.fromInline('function handler(event) { return event.request.uri = \'/test_site/test.html\'}'),
-    });
-
+    // Define S3 bucket to be used as the origin
     const s3Bucket = new s3.Bucket(this, 'MyFirstBucket', {
       versioned: false
     });
 
+    // Upload content to the S3 bucket defined above
     const asset = new s3deploy.BucketDeployment(this, 'SampleAsset', {
       sources: [s3deploy.Source.asset('./assets')],
       destinationBucket: s3Bucket,
       destinationKeyPrefix: 'test_site'
     });
 
+    // Define a cloudfront Function to be used in the Distribution
+    const cfFunction = new cloudfront.Function(this, 'Function', {
+      code: cloudfront.FunctionCode.fromFile({filePath: './edge-functions/rewrite.js'}),
+    });
+
+    // Define a distribution that uses the S3 bucket and the function
     new cloudfront.Distribution(this, 'MyDistribution', {
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       defaultBehavior: {
