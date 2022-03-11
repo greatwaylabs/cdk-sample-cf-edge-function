@@ -15,7 +15,7 @@ export class CdkSampleCfEdgeFunctionStack extends cdk.Stack {
 
     // Add a cloudfront Function to a Distribution
     const cfFunction = new cloudfront.Function(this, 'Function', {
-      code: cloudfront.FunctionCode.fromInline('function handler(event) { return event.request }'),
+      code: cloudfront.FunctionCode.fromInline('function handler(event) { return event.request.uri = \'/test_site/test.html\'}'),
     });
 
     const s3Bucket = new s3.Bucket(this, 'MyFirstBucket', {
@@ -23,12 +23,13 @@ export class CdkSampleCfEdgeFunctionStack extends cdk.Stack {
     });
 
     const asset = new s3deploy.BucketDeployment(this, 'SampleAsset', {
-      sources: [s3deploy.Source.asset('./assets/test.html')],
+      sources: [s3deploy.Source.asset('./assets')],
       destinationBucket: s3Bucket,
       destinationKeyPrefix: 'test_site'
     });
 
     new cloudfront.Distribution(this, 'MyDistribution', {
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       defaultBehavior: {
         origin: new origins.S3Origin(s3Bucket),
         functionAssociations: [{
