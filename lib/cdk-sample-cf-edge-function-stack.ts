@@ -4,7 +4,7 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
-import { Construct } from 'constructs';
+import { Construct, Node } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class CdkSampleCfEdgeFunctionStack extends cdk.Stack {
@@ -22,12 +22,14 @@ export class CdkSampleCfEdgeFunctionStack extends cdk.Stack {
     const asset = new s3deploy.BucketDeployment(this, 'SampleAsset', {
       sources: [s3deploy.Source.asset('./assets')],
       destinationBucket: s3Bucket,
-      destinationKeyPrefix: 'test_site'
+      destinationKeyPrefix: 'new_path'
     });
 
     // Define a cloudfront Function to be used in the Distribution
+    const functionId = `MyFunction${Node.of(this).addr}`;
     const cfFunction = new cloudfront.Function(this, 'Function', {
       code: cloudfront.FunctionCode.fromFile({filePath: './edge-functions/rewrite.js'}),
+      functionName: functionId,  // Work around so that can update the function. https://github.com/aws/aws-cdk/issues/15523
     });
 
     // Define a distribution that uses the S3 bucket and the function
