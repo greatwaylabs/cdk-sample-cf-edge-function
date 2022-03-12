@@ -21,4 +21,5 @@ function handler(event) {
   return request;
 }
 
-module.exports = handler;
+// Uncomment the line below for testing
+// module.exports = handler;
